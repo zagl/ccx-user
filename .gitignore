@@ -32,8 +32,23 @@ ccx_2.8
 ccx_2.8p1
 #ccx_2.8p2
 
-# prool:
+# etc:
 *.orig
 aaa
-
 *~
+*.swp
+
+# calculix
+*.flm
+*.rad
+*.msh
+*.cvg
+*.dat
+*.frd
+*.sta
+
+
+
+
+
+
