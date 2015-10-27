@@ -100,6 +100,9 @@
           Ra = (rho**2.d0*g*beta*cp*b**4.d0*deltat)/(mu*k*l)
           Nu = Ra/24.d0* (1.d0 - exp(-35.d0/Ra))**.75d0
 
+          lambda = Nu * k / b
+
+
       else if ( loadtype(5:5).eq."W" ) then
 
           read(loadtype(pos1+1:), *) l
@@ -108,6 +111,8 @@
           Ra = Gr*Pr
           f = (1.d0 + (0.492d0/Pr)**(9.d0/16.d0) )**(-16.d0/9.d0)
           Nu = (0.825d0 + 0.387d0*(Ra*f)**(1.d0/6.d0) )**2.d0
+
+          lambda = Nu * k / l
 
       else if ( loadtype(5:5).eq."T" ) then
 
@@ -123,6 +128,8 @@
               Nu = .766d0*(Ra*f)**(1.d0/5.d0)
           end if
 
+          lambda = Nu * k / l
+
       else if ( loadtype(5:5).eq."B" ) then
 
           read(loadtype(pos1+1:), *) l
@@ -133,9 +140,10 @@
 
           Nu = .6d0*(Ra*f)**(1.d0/5.d0)
 
+          lambda = Nu * k / l
+
       end if
 
-      lambda = Nu * k / l
       h(1)=lambda
       sink=ta
 !
