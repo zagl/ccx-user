@@ -1,0 +1,14 @@
+read geom.fbd
+
+elty all
+elty all he8
+mesh all
+
+send all abq
+send air abq film 1. 1.
+
+move all scal 1000
+volu all
+
+sys sed "s/\(F[0-9]\).*/\1NUW 20.; 0.8/g" air.flm > air.flm.tmp
+sys mv air.flm.tmp air.flm

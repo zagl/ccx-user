@@ -66,93 +66,78 @@
       implicit none
 !
       character*20 loadtype
-      integer kstep,kinc,noel,npt,jltyp,nfield,node,mi(*),ib,it
+      integer kstep,kinc,noel,npt,jltyp,nfield,node,mi(*),pos1,pos2,pos3
       real*8 h(2),sink,time(2),coords(3),temp,field(nfield),area,
-     &  vold(0:mi(2),*), t, ta, dtemp, cp, mu, rho, beta, g, k, ny, l,
+     &  vold(0:mi(2),*), t, ta, deltat, cp, mu, rho, beta, g, k, ny, l,
      &  Ra, Nu, b, lambda, il, Gr, Pr, f
 
-      if( loadtype(5:5).eq."F" ) then
+      pos1 = index(loadtype, ";")
+      read(loadtype(6:pos1-1), *) ta
 
-          ib = index(loadtype, "B")
-          it = index(loadtype, "T")
+      deltat = temp - ta
+      if( abs(deltat) < .01d0 ) deltat = .01d0
 
-          read(loadtype(6:ib-1), *) l
-          read(loadtype(ib+1:it-1), *) b
-          read(loadtype(it+1:), *) ta
+      t = (temp + ta)/2.d0
+      if( t.lt.-50 ) t = -50.d0
+      if( t.gt.200 ) t = 200.d0
 
-          dtemp = temp - ta
-          t = (temp + ta)/2.d0
+      g = 9.81d0
+      cp = ( 8.287d-12*t**3 +4.050d-7*t**2 +1.538d-5*t +1.00588)*1.d3
+      mu = ( 3.396d-8 *t**3 -3.661d-5*t**2 +5.012d-2*t +17.2172)*1.d-6
+      beta=(-8.569d-8 *t**3 +4.676d-5*t**2 -1.379d-2*t +3.67965)*1.d-3
+      rho =(-2.908d-8 *t**3 +1.597d-5*t**2 -4.756d-3*t +1.27778)
+      k =  ( 3.946d-8 *t**3 -4.341d-5*t**2 +7.656d-2*t +24.3589)*1.d-3
+      ny = (-4.834d-7 *t**3 +1.130d-4*t**2 +0.887883*t +134.993)*1.d-7
+      Pr = (-4.298d-10*t**3 +5.408d-7*t**2 -1.555d-4*t +0.71099)
 
-          if( t.lt.-50 ) t = -50.d0
-          if( t.gt.200 ) t = 200.d0
+      if ( loadtype(5:5).eq."C" ) then
 
-          cp =
-     &  ( 8.287d-12*t**3 +4.050d-7*t**2 +1.538d-5*t +1.00588)*1.d3
-          mu =
-     &  ( 3.396d-8 *t**3 -3.661d-5*t**2 +5.012d-2*t +17.2172)*1.d-6
-          beta =
-     &  (-8.569d-8 *t**3 +4.676d-5*t**2 -1.379d-2*t +3.67965)*1.d-3
-          rho =
-     &  (-2.908d-8 *t**3 +1.597d-5*t**2 -4.756d-3*t +1.27778)
-          k =
-     &  ( 3.946d-8 *t**3 -4.341d-5*t**2 +7.656d-2*t +24.3589)*1.d-3
-          ny =
-     &  (-4.834E-7 *t**3 +1.130d-4*t**2 +0.887883*t +134.993)*1.d-7
-          g = 9.81d0
+          pos2 = index(loadtype(pos1+1:), ";") + pos1
 
-          Ra = (rho**2.d0*g*beta*cp*b**4.d0*dtemp)/(mu*k*l)
+          read(loadtype(pos1+1:pos2-1), *) l
+          read(loadtype(pos2+1:), *) b
+
+          Ra = (rho**2.d0*g*beta*cp*b**4.d0*deltat)/(mu*k*l)
           Nu = Ra/24.d0* (1.d0 - exp(-35.d0/Ra))**.75d0
-          lambda = Nu*k/b
 
-          h(1)=lambda
-          sink = ta
+      else if ( loadtype(5:5).eq."W" ) then
 
-      else
+          read(loadtype(pos1+1:), *) l
 
-          it = index(loadtype, "T")
-
-          read(loadtype(5:it-1), *) l
-          read(loadtype(it+1:), *) ta
-
-          dtemp = temp - ta
-          t = (temp + ta)/2.d0
-
-          if( t.lt.-50 ) t = -50.d0
-          if( t.gt.200 ) t = 200.d0
-
-          cp =
-     &  ( 8.287d-12*t**3 +4.050d-7*t**2 +1.538d-5*t +1.00588)*1.d3
-          mu =
-     &  ( 3.396d-8 *t**3 -3.661d-5*t**2 +5.012d-2*t +17.2172)*1.d-6
-          beta =
-     &  (-8.569d-8 *t**3 +4.676d-5*t**2 -1.379d-2*t +3.67965)*1.d-3
-          rho =
-     &  (-2.908d-8 *t**3 +1.597d-5*t**2 -4.756d-3*t +1.27778)
-          k =
-     &  ( 3.946d-8 *t**3 -4.341d-5*t**2 +7.656d-2*t +24.3589)*1.d-3
-          ny =
-     &  (-4.834d-7 *t**3 +1.130d-4*t**2 +0.887883*t +134.993)*1.d-7
-          g = 9.81d0
-
-          Pr =
-     &  (-4.298d-10*t**3 +5.408d-7*t**2 -1.555d-4*t +0.71099)
-
-          Gr = (g*l**3.d0 *beta*dtemp)/ny**2.d0
-
+          Gr = (g*l**3.d0 *beta*deltat)/ny**2.d0
           Ra = Gr*Pr
-
           f = (1.d0 + (0.492d0/Pr)**(9.d0/16.d0) )**(-16.d0/9.d0)
           Nu = (0.825d0 + 0.387d0*(Ra*f)**(1.d0/6.d0) )**2.d0
 
-          lambda = Nu * k / l
+      else if ( loadtype(5:5).eq."T" ) then
 
+          read(loadtype(pos1+1:), *) l
 
-          h(1)=lambda
-          sink=ta
+          Gr = (g*l**3.d0 *beta*deltat)/ny**2.d0
+          Ra = Gr*Pr
+          f = (1.d0 + (0.332d0/Pr)**(11.d0/20.d0) )**(-20.d0/11.d0)
+
+          if ( Ra*f > 7.d4 ) then
+              Nu = .15d0*(Ra*f)**(1.d0/3.d0)
+          else
+              Nu = .766d0*(Ra*f)**(1.d0/5.d0)
+          end if
+
+      else if ( loadtype(5:5).eq."B" ) then
+
+          read(loadtype(pos1+1:), *) l
+
+          Gr = (g*l**3.d0 *beta*deltat)/ny**2.d0
+          Ra = Gr*Pr
+          f = (1.d0 + (0.332d0/Pr)**(11.d0/20.d0) )**(-20.d0/11.d0)
+
+          Nu = .6d0*(Ra*f)**(1.d0/5.d0)
 
       end if
 
-!      write(*,*) lambda
+      lambda = Nu * k / l
+      h(1)=lambda
+      sink=ta
 !
       return
       end
