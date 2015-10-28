@@ -5,32 +5,32 @@ elty all he8
 mesh all
 
 send all abq
-send top abq film 1. 1.
-send bottom abq film 1. 1.
-send channel abq film 1. 1.
-send walls abq film 1. 1.
+send ht abq film 1. 1.
+send hb abq film 1. 1.
+send hc abq film 1. 1.
+send hw abq film 1. 1.
 
-seta rad se top
-seta rad se bottom
-seta rad se channel
-seta rad se walls
+seta rad se ht
+seta rad se hb
+seta rad se hc
+seta rad se hw
 
 send rad abq rad 1. 1.
 
 move all scal 1000
 volu all
 
-sys sed "s/\(F[0-9]\).*/\1NUT 20.; 1.64e-3/g" top.flm > top.flm.tmp
-sys mv top.flm.tmp top.flm
+sys sed "s/\(F[0-9]\).*/\1NUT 20.; 1.64e-3/g" ht.flm > ht.flm.tmp
+sys mv ht.flm.tmp ht.flm
 
-sys sed "s/\(F[0-9]\).*/\1NUB 20.; 1.64e-3/g" bottom.flm > bottom.flm.tmp
-sys mv bottom.flm.tmp bottom.flm
+sys sed "s/\(F[0-9]\).*/\1NUB 20.; 1.64e-3/g" hb.flm > hb.flm.tmp
+sys mv hb.flm.tmp hb.flm
 
-sys sed "s/\(F[0-9]\).*/\1NUT 20.; .075/g" walls.flm > walls.flm.tmp
-sys mv walls.flm.tmp walls.flm
+sys sed "s/\(F[0-9]\).*/\1NUW 20.; .075/g" hw.flm > hw.flm.tmp
+sys mv hw.flm.tmp hw.flm
 
-sys sed "s/\(F[0-9]\).*/\1NUC 20.; .075; 0.0041/g" channel.flm > channel.flm.tmp
-sys mv channel.flm.tmp channel.flm
+sys sed "s/\(F[0-9]\).*/\1NUC 20.; 75; 4100/g" hc.flm > hc.flm.tmp
+sys mv hc.flm.tmp hc.flm
 
 sys sed "s/\(R[0-9]\)/\1CR/g" rad.rad > rad.rad.tmp
 sys mv rad.rad.tmp rad.rad

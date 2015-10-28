@@ -97,6 +97,9 @@
           read(loadtype(pos1+1:pos2-1), *) l
           read(loadtype(pos2+1:), *) b
 
+          l = l * 1e-3
+          b = b * 1e-6
+
           Ra = (rho**2.d0*g*beta*cp*b**4.d0*deltat)/(mu*k*l)
           Nu = Ra/24.d0* (1.d0 - exp(-35.d0/Ra))**.75d0
 
