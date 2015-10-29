@@ -5,25 +5,10 @@ import re
 import fileinput
 import subprocess
 
-def heatSinkTemp(length, width, height, n_fins, fin_width, base_width, conductivity, ta, emissivity, flux):
-    # Geometry
-#    length = 0.075
-#    width = 0.0495
-#    height = 0.050
-#    n_fins = 6
-#    fin_width = 2e-3
-#    base_width = 7e-3
-#
-#
-#
-#    # Physical
-#    conductivity = 200.
-#    ta = 20.
-#    emissivity = 0.90
-#    flux = 15.
+def heatSinkTemp(length, width, height, n_fins, fin_width,
+        base_width, conductivity, ta, emissivity, flux):
 
     fin_spacing = (width- fin_width) /(n_fins -1) - fin_width
-
     flux_density = flux / (length*width)
 
     c = pycgx.Cgx()
@@ -32,7 +17,7 @@ def heatSinkTemp(length, width, height, n_fins, fin_width, base_width, conductiv
         [0., 0., 0.],
         [length, width, height],
         n_fins, fin_width, base_width,
-        [4,1,2],
+        [4,2,2],
         'heatsink'
     )
 
@@ -79,55 +64,60 @@ def heatSinkTemp(length, width, height, n_fins, fin_width, base_width, conductiv
 
     with fileinput.FileInput('ht.flm', inplace=True) as fobj:
         for line in fobj:
-            print(re.sub(r'(F[0-9]).*', r'\1NUT {0:d}; {1:0.3e}'.format(int(ta), l_hor), line), end='')
+            print(re.sub(r'(F[0-9]).*', r'\1NUT {0:d}; {1:0.3e}'\
+                .format(int(ta), l_hor), line), end='')
 
     with fileinput.FileInput('hb.flm', inplace=True) as fobj:
         for line in fobj:
-            print(re.sub(r'(F[0-9]).*', r'\1NUB {0:d}; {1:0.3e}'.format(int(ta), l_hor), line), end='')
+            print(re.sub(r'(F[0-9]).*', r'\1NUB {0:d}; {1:0.3e}'\
+                .format(int(ta), l_hor), line), end='')
 
     with fileinput.FileInput('hw.flm', inplace=True) as fobj:
         for line in fobj:
-            print(re.sub(r'(F[0-9]).*', r'\1NUW {0:d}; {1:0.3e}'.format(int(ta), length), line), end='')
+            print(re.sub(r'(F[0-9]).*', r'\1NUW {0:d}; {1:0.3e}'\
+                .format(int(ta), length), line), end='')
 
     with fileinput.FileInput('hc.flm', inplace=True) as fobj:
         for line in fobj:
-            print(re.sub(r'(F[0-9]).*', r'\1NUC {0:d}; {1:3d}; {2:d}'.format(int(ta), int(length*1000), int(fin_spacing*1e6)), line, ), end='')
+            print(re.sub(r'(F[0-9]).*', r'\1NUC {0:d}; {1:3d}; {2:d}'\
+                .format(int(ta), int(length*1000), int(fin_spacing*1e6)),
+                line, ), end='')
 
     with fileinput.FileInput('rad.rad', inplace=True) as fobj:
         for line in fobj:
             print(re.sub(r'(R[0-9])', r'\1CR', line), end='')
 
     case_deck = '''\
-    *INCLUDE, INPUT=all.msh
-    *MATERIAL, Name=Aluminium
-    *CONDUCTIVITY
-      %f,0.
-    *SOLID SECTION, Elset=Eall, Material=Aluminium
-    *PHYSICAL CONSTANTS,ABSOLUTE ZERO=-273.15,STEFAN BOLTZMANN=5.669E-8
-    *INITIAL CONDITIONS,TYPE=TEMPERATURE
-      Nall, %f
-    *AMPLITUDE, NAME=Aflux
-      0., %f
-    *AMPLITUDE, NAME=AinfTemp
-      0., %f
-    *AMPLITUDE, NAME=ARad
-      0., %f
-    *STEP
-    *HEAT TRANSFER,STEADY STATE
-    *DFLUX, AMPLITUDE=Aflux
-    *INCLUDE, INPUT=flux.dfl
-    *FILM
-    *INCLUDE, INPUT=hb.flm
-    *INCLUDE, INPUT=ht.flm
-    *INCLUDE, INPUT=hw.flm
-    *INCLUDE, INPUT=hc.flm
-    *RADIATE, AMPLITUDE=AinfTemp, RADIATION AMPLITUDE=ARad
-    *INCLUDE, INPUT=rad.rad
-    *EL FILE
-      HFL
-    *NODE FILE
-      NT,RFL
-    *END STEP''' % (conductivity, ta, flux_density, ta, emissivity)
+*INCLUDE, INPUT=all.msh
+*MATERIAL, Name=Aluminium
+*CONDUCTIVITY
+  %f,0.
+*SOLID SECTION, Elset=Eall, Material=Aluminium
+*PHYSICAL CONSTANTS,ABSOLUTE ZERO=-273.15,STEFAN BOLTZMANN=5.669E-8
+*INITIAL CONDITIONS,TYPE=TEMPERATURE
+  Nall, %f
+*AMPLITUDE, NAME=Aflux
+  0., %f
+*AMPLITUDE, NAME=AinfTemp
+  0., %f
+*AMPLITUDE, NAME=ARad
+  0., %f
+*STEP
+*HEAT TRANSFER,STEADY STATE
+*DFLUX, AMPLITUDE=Aflux
+*INCLUDE, INPUT=flux.dfl
+*FILM
+*INCLUDE, INPUT=hb.flm
+*INCLUDE, INPUT=ht.flm
+*INCLUDE, INPUT=hw.flm
+*INCLUDE, INPUT=hc.flm
+*RADIATE, AMPLITUDE=AinfTemp, RADIATION AMPLITUDE=ARad
+*INCLUDE, INPUT=rad.rad
+*EL FILE
+  HFL
+*NODE FILE
+  NT,RFL
+*END STEP''' % (conductivity, ta, flux_density, ta, emissivity)
 
     with open('case.inp', 'w') as fobj:
         fobj.write(case_deck)
@@ -146,18 +136,20 @@ def heatSinkTemp(length, width, height, n_fins, fin_width, base_width, conductiv
     return float(out[5:17])
 
 
-for n in range(2,20):
+#for n in range(2,20):
+if True:
+    n = 9
     t = heatSinkTemp(
-        length = 0.075,
-        width = 0.0495,
-        height = 0.050,
-        n_fins = n,
-        fin_width = 2e-3,
-        base_width = 7e-3,
-        conductivity = 200.,
+        length = 0.113,
+        width = 0.075,
+        height = 0.026,
+        n_fins = 9,
+        fin_width = 2.2e-3,
+        base_width = 11e-3,
+        conductivity = 120.,
         ta = 20.,
-        emissivity = 0.90,
-        flux = 15.,
+        emissivity = 0.1,
+        flux = 14.,
     )
-    print(t)
+    print(n, t)
 
